@@ -4,6 +4,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <sys/time.h>
+#include <assert.h>
 
 // 
 // server.c: A very, very simple web server
@@ -55,12 +56,14 @@ void add_to_ringbuffer(struct RingBuffer* buffer, int val)
 	{
 		if (buffer->alg == BLOCK)
 		{
+			assert(buffer->producer_idx == buffer->consumer_idx);
 			while(buffer->max_size == buffer->size)
 				pthread_cond_wait(&not_full, &lock);
 			gettimeofday(&time, NULL);
 			buffer->array[buffer->producer_idx]->fd = val;
 			buffer->array[buffer->producer_idx]->arrival = time;
 			buffer->size++;
+			buffer->producer_idx++;
 			if(buffer->producer_idx == buffer->max_size)
 				buffer->producer_idx = 0;  // signal sent at end of func
 			pthread_cond_signal(&not_empty);  // end of func signal
@@ -207,6 +210,7 @@ int main(int argc, char *argv[])
 	{
 		struct Request* new_request = (struct Request*) malloc(sizeof(struct Request));
 		new_request->fd = -1;
+		requests.array[i] = new_request;
 	}
 	
     listenfd = Open_listenfd(port);

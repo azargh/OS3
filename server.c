@@ -48,17 +48,22 @@ void add_to_ringbuffer(struct RingBuffer* buffer, int val)
 	pthread_mutex_lock(&lock);
 	struct timeval time;
 	gettimeofday(&time, NULL);
-	printf("size is: %d\n", buffer->size);
-	printf("producer idx: %d\n", buffer->producer_idx);
-	printf("consumer idx: %d\n", buffer->consumer_idx);
-	printf("val is: %d\n", val);
+	//printf("size is: %d\n", buffer->size);
+	//printf("producer idx: %d\n", buffer->producer_idx);
+	//printf("consumer idx: %d\n", buffer->consumer_idx);
+	//printf("val is: %d\n", val);
 	if (buffer->size == buffer->max_size)
 	{
 		if (buffer->alg == BLOCK)
 		{
+			//printf("entered the blocking if\n");
 			assert(buffer->producer_idx == buffer->consumer_idx);
 			while(buffer->max_size == buffer->size)
+			{
+				//printf("waiting on not full signal\n");
 				pthread_cond_wait(&not_full, &lock);
+				//printf("got the not full signal\n");
+			}
 			gettimeofday(&time, NULL);
 			buffer->array[buffer->producer_idx]->fd = val;
 			buffer->array[buffer->producer_idx]->arrival = time;
@@ -102,7 +107,7 @@ void add_to_ringbuffer(struct RingBuffer* buffer, int val)
 	}
 	else
 	{
-		printf("entered the else\n");
+		//printf("entered the else\n");
 		buffer->array[buffer->producer_idx]->fd = val;
 		buffer->array[buffer->producer_idx]->arrival = time;
 		buffer->producer_idx++;
@@ -111,7 +116,7 @@ void add_to_ringbuffer(struct RingBuffer* buffer, int val)
 			buffer->producer_idx = 0;
 		pthread_cond_signal(&not_empty);
 		pthread_mutex_unlock(&lock);
-		printf("exitted the else\n");
+		//printf("exitted the else\n");
 		return;
 	}
 	printf("reached unexpected end of add_to_ringbuffer\n");
@@ -125,7 +130,7 @@ void* do_request_handle(void* _thread)
 	struct Thread* thread = (struct Thread*) _thread;
 	while(1)
 	{
-		printf("entered do_request_handle\n");
+		//printf("entered do_request_handle\n");
 		pthread_mutex_lock(&lock);
 		while(requests.size == 0)
 		{
@@ -149,13 +154,16 @@ void* do_request_handle(void* _thread)
 		if(requests.consumer_idx == requests.max_size)
 			requests.consumer_idx = 0;
 		//printf("did manipulation on consumer idx\n");
+		int temp = request->fd;
+		struct Request copy = *request;
 		pthread_cond_signal(&not_full);
 		pthread_mutex_unlock(&lock);
-		printf("started handling request, inner\n");
-		requestHandle(*request);
-		printf("finished handling request, inner\n");
-		Close(request->fd);
-		printf("exitted do_request_handle\n");
+		//printf("started handling request, inner\n");
+		requestHandle(copy);
+		//printf("finished handling request, inner\n");
+		//printf("trying to close: %d\n", request->fd);
+		Close(temp);
+		//printf("exitted do_request_handle\n");
 	}
 }
 
@@ -216,7 +224,7 @@ int main(int argc, char *argv[])
     listenfd = Open_listenfd(port);
     while (1) 
     {
-		printf("main thread: %lu\n", pthread_self());
+		//printf("main thread: %lu\n", pthread_self());
 		//printf("waiting on request\n");
 		clientlen = sizeof(clientaddr);
 		connfd = Accept(listenfd, (SA *)&clientaddr, (socklen_t *) &clientlen);

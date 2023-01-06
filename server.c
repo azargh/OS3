@@ -117,14 +117,14 @@ void add_to_ringbuffer(struct RingBuffer* buffer, int val)
 	//printf("add to ringbuffer: ended\n");
 }
 
-void* do_request_handle(void* _requests)
+void* do_request_handle(void* _thread)
 {
-	struct RingBuffer* requests = (struct RingBuffer*) _requests;
+	struct Thread* thread = (struct Thread*) _thread;
 	while(1)
 	{
 		printf("entered do_request_handle\n");
 		pthread_mutex_lock(&lock);
-		while(requests->size == 0)
+		while(requests.size == 0)
 		{
 			//printf("thread waiting on lock\n");
 			pthread_cond_wait(&not_empty, &lock);
@@ -134,27 +134,17 @@ void* do_request_handle(void* _requests)
 		struct timeval time;
 		gettimeofday(&time, NULL);
 		
-		requests->size--;
-		struct Request* request = requests->array[requests->consumer_idx];
+		requests.size--;
+		struct Request* request = requests.array[requests.consumer_idx];
 		
 		timersub(&time, &request->arrival, &time);
 		request->dispatch = time;
 		
-		pthread_t thread_handling_this_request = pthread_self();  // finds info about thread handling this request
-		printf("thread handling: %lu\n", thread_handling_this_request);
-		for(int i = 0; i < num_of_threads; ++i)
-		{
-			printf("thread found: %lu\n", thread_array[i]->thread);
-			if(pthread_equal(thread_array[i]->thread, thread_handling_this_request))
-			{
-				request->thread_info = thread_array[i];
-				printf("broke on the do_request_handle loop\n");
-				break;
-			}
-		}
-		requests->consumer_idx++;
-		if(requests->consumer_idx == requests->max_size)
-			requests->consumer_idx = 0;
+		request->thread_info = thread;
+		
+		requests.consumer_idx++;
+		if(requests.consumer_idx == requests.max_size)
+			requests.consumer_idx = 0;
 		//printf("did manipulation on consumer idx\n");
 		pthread_cond_signal(&not_full);
 		pthread_mutex_unlock(&lock);
@@ -166,14 +156,14 @@ void* do_request_handle(void* _requests)
 	}
 }
 
-void getargs(int *port, int *num_of_threads, int *queue_size, enum _schedalg *schedalg, int argc, char *argv[])
+void getargs(int *port, int *_num_of_threads, int *queue_size, enum _schedalg *schedalg, int argc, char *argv[])
 {
     if (argc < 4) {
 	fprintf(stderr, "Usage: %s <port> <threads> <queue_size> <schedalg>\n", argv[0]);
 	exit(1);
     }
     *port = atoi(argv[1]);
-    *num_of_threads = atoi(argv[2]);
+    *_num_of_threads = atoi(argv[2]);
     *queue_size = atoi(argv[3]);
     if (strcmp(argv[4], "block") == 0)
 		*schedalg = BLOCK;
@@ -205,15 +195,8 @@ int main(int argc, char *argv[])
 
 	for (int i=0; i < num_of_threads; ++i)  // creating threads
 	{
-		//printf("size of cell: %d, size of struct: %d\n", sizeof(thread_array[i]), sizeof(pthread_t));
-		//pthread_create(&thread_array[i].thread, NULL,do_request_handle,&requests);
-		//printf("thread pid as returned by create: %lu\n", thread_array[i].thread);
-		//thread_array[i].count = 0;
-		//thread_array[i].static_count = 0;
-		//thread_array[i].dynamic_count = 0;
-		
 		struct Thread* new_thread = (struct Thread*) malloc(sizeof(struct Thread));
-		pthread_create(&new_thread->thread, NULL,do_request_handle,&requests);
+		pthread_create(&new_thread->thread, NULL, do_request_handle, new_thread);
 		new_thread->count = 0;
 		new_thread->dynamic_count = 0;
 		new_thread->static_count = 0;

@@ -177,7 +177,6 @@ void requestServeStatic(struct Request request, char *filename, int filesize)
    //  Writes out to the client socket the memory-mapped file 
    Rio_writen(fd, srcp, filesize);
    Munmap(srcp, filesize);
-
 }
 
 // handle a request

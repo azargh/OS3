@@ -20,7 +20,7 @@
 pthread_cond_t not_empty;
 pthread_cond_t not_full;
 pthread_mutex_t lock;
-struct Thread* thread_array;
+struct Thread** thread_array;
 struct RingBuffer requests;
 int num_of_threads;
 
@@ -121,14 +121,16 @@ void* do_request_handle(void* _requests)
 		
 		requests->size--;
 		struct Request request = requests->array[requests->consumer_idx];
+		
+		timersub(&time, &request.arrival, &time);
 		request.dispatch = time;
 		
 		pthread_t thread_handling_this_request = pthread_self();  // finds info about thread handling this request
 		//printf("thread handling: %lu\n", thread_handling_this_request);
 		for(int i = 0; i < num_of_threads; ++i)
-			if(thread_array[i].thread == thread_handling_this_request)
+			if(thread_array[i]->thread == thread_handling_this_request)
 			{
-				request.thread_info = &thread_array[i];
+				request.thread_info = thread_array[i];
 				break;
 			}
 		
@@ -172,7 +174,7 @@ int main(int argc, char *argv[])
     enum _schedalg schedalg;
     struct sockaddr_in clientaddr;
 	pthread_mutex_init(&lock, NULL);
-	thread_array = (struct Thread*) malloc(sizeof(struct Thread) * num_of_threads);
+	thread_array = (struct Thread**) malloc(sizeof(struct Thread*) * num_of_threads);
 	
     getargs(&port, &num_of_threads, &queue_size, &schedalg, argc, argv);
 	 
@@ -185,16 +187,19 @@ int main(int argc, char *argv[])
 
 	for (int i=0; i < num_of_threads; ++i)  // creating threads
 	{
-		pthread_create(&thread_array[i].thread, NULL,do_request_handle,&requests);
+		//printf("size of cell: %d, size of struct: %d\n", sizeof(thread_array[i]), sizeof(pthread_t));
+		//pthread_create(&thread_array[i].thread, NULL,do_request_handle,&requests);
 		//printf("thread pid as returned by create: %lu\n", thread_array[i].thread);
-		thread_array[i].count = 0;
-		thread_array[i].static_count = 0;
-		thread_array[i].dynamic_count = 0;
-	}
-	
-	for (int i=0; i < num_of_threads; ++i)  // debug info
-	{
-		printf("info on thread #%d: id = %lu, count = %d, static_count = %d, dynamic_count = %d\n", i, thread_array[i].thread, thread_array[i].count, thread_array[i].static_count, thread_array[i].dynamic_count);
+		//thread_array[i].count = 0;
+		//thread_array[i].static_count = 0;
+		//thread_array[i].dynamic_count = 0;
+		
+		struct Thread* new_thread = (struct Thread*) malloc(sizeof(struct Thread));
+		pthread_create(&new_thread->thread, NULL,do_request_handle,&requests);
+		new_thread->count = 0;
+		new_thread->dynamic_count = 0;
+		new_thread->static_count = 0;
+		thread_array[i] = new_thread;
 	}
 	
     listenfd = Open_listenfd(port);

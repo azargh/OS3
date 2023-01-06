@@ -185,9 +185,9 @@ void requestHandle(struct Request request)
 {
 	int fd = request.fd;
 	//printf("requestHandle: fd = %d\n", fd);
-	printf("thread with id %lu had count of %d, address is %lu\n", request.thread_info->thread, request.thread_info->count, request.thread_info); 
-	request.thread_info->count++;
-	printf("thread with id %lu had count of %d, address is %lu\n", request.thread_info->thread, request.thread_info->count, request.thread_info);
+	printf("thread with id %lu had count of %d\n", request.thread_info->thread, request.thread_info->count); 
+	(request.thread_info->count)++;
+	printf("thread with id %lu had count of %d\n", request.thread_info->thread, request.thread_info->count);
    int is_static;
    struct stat sbuf;
    char buf[MAXLINE], method[MAXLINE], uri[MAXLINE], version[MAXLINE];

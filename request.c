@@ -184,28 +184,28 @@ void requestServeStatic(struct Request request, char *filename, int filesize)
 void requestHandle(struct Request request)
 {
 	int fd = request.fd;
-	//printf("requestHandle: fd = %d\n", fd);
-	printf("thread with id %lu had count of %d\n", request.thread_info->thread, request.thread_info->count); 
-	(request.thread_info->count)++;
-	printf("thread with id %lu had count of %d\n", request.thread_info->thread, request.thread_info->count);
+	printf("requestHandle: fd = %d\n", fd);
+	//printf("thread with id %lu had count of %d\n", request.thread_info->thread, request.thread_info->count); 
+	//(request.thread_info->count)++;
+	//printf("thread with id %lu had count of %d\n", request.thread_info->thread, request.thread_info->count);
    int is_static;
    struct stat sbuf;
    char buf[MAXLINE], method[MAXLINE], uri[MAXLINE], version[MAXLINE];
    char filename[MAXLINE], cgiargs[MAXLINE];
    rio_t rio;
    
-   //printf("requestHandle: finished initing vars\n");
+   printf("requestHandle: finished initing vars\n");
 
-	//printf("requestHandle: before the rio_readinitb\n");
+	printf("requestHandle: before the rio_readinitb\n");
    Rio_readinitb(&rio, fd);
-   //printf("requestHandle: before the rio_readlineb\n");
+   printf("requestHandle: before the rio_readlineb\n");
    Rio_readlineb(&rio, buf, MAXLINE);
-   //printf("requestHandle: before the scanf\n");
+   printf("requestHandle: before the scanf\n");
    sscanf(buf, "%s %s %s", method, uri, version);
 
    printf("%s %s %s\n", method, uri, version);
 
-	//printf("requestHandle: after the print\n");
+	printf("requestHandle: after the print\n");
 	
    if (strcasecmp(method, "GET")) {
       requestError(fd, method, "501", "Not Implemented", "OS-HW3 Server does not implement this method");
@@ -224,14 +224,14 @@ void requestHandle(struct Request request)
          requestError(fd, filename, "403", "Forbidden", "OS-HW3 Server could not read this file");
          return;
       }
-      //printf("requestHandle: started requestServeStatic\n");
+      printf("requestHandle: started requestServeStatic\n");
       requestServeStatic(request, filename, sbuf.st_size);
    } else {
       if (!(S_ISREG(sbuf.st_mode)) || !(S_IXUSR & sbuf.st_mode)) {
          requestError(fd, filename, "403", "Forbidden", "OS-HW3 Server could not run this CGI program");
          return;
       }
-      //printf("requestHandle: started requestServeDynamic\n");
+      printf("requestHandle: started requestServeDynamic\n");
       requestServeDynamic(request, filename, cgiargs);
    }
 }

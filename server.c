@@ -32,7 +32,7 @@ enum _schedalg{
 	
 	
 struct RingBuffer{
-	struct Request* array;
+	struct Request** array;
 	int consumer_idx, producer_idx;
 	int size;
 	int max_size;
@@ -47,17 +47,25 @@ void add_to_ringbuffer(struct RingBuffer* buffer, int val)
 	pthread_mutex_lock(&lock);
 	struct timeval time;
 	gettimeofday(&time, NULL);
+	printf("size is: %d\n", buffer->size);
+	printf("producer idx: %d\n", buffer->producer_idx);
+	printf("consumer idx: %d\n", buffer->consumer_idx);
+	printf("val is: %d\n", val);
 	if (buffer->size == buffer->max_size)
 	{
 		if (buffer->alg == BLOCK)
 		{
 			while(buffer->max_size == buffer->size)
 				pthread_cond_wait(&not_full, &lock);
-			buffer->array[buffer->producer_idx].fd = val;
-			buffer->array[buffer->producer_idx].arrival = time;
+			gettimeofday(&time, NULL);
+			buffer->array[buffer->producer_idx]->fd = val;
+			buffer->array[buffer->producer_idx]->arrival = time;
 			buffer->size++;
 			if(buffer->producer_idx == buffer->max_size)
 				buffer->producer_idx = 0;  // signal sent at end of func
+			pthread_cond_signal(&not_empty);  // end of func signal
+			pthread_mutex_unlock(&lock);
+			return;
 			
 		}
 		else if (buffer->alg == DT)
@@ -69,15 +77,18 @@ void add_to_ringbuffer(struct RingBuffer* buffer, int val)
 		}
 		else if (buffer->alg == DH)
 		{
-			Close(buffer->array[buffer->consumer_idx].fd);
+			Close(buffer->array[buffer->consumer_idx]->fd);
 			buffer->consumer_idx++;
-			buffer->array[buffer->producer_idx].fd = val;
-			buffer->array[buffer->producer_idx].arrival = time;
+			buffer->array[buffer->producer_idx]->fd = val;
+			buffer->array[buffer->producer_idx]->arrival = time;
 			buffer->producer_idx++;
 			if(buffer->producer_idx == buffer->max_size)
 				buffer->producer_idx = 0;
 			if(buffer->consumer_idx == buffer->max_size)
-				buffer->consumer_idx = 0;  // signal sent at end of func
+				buffer->consumer_idx = 0;
+			pthread_cond_signal(&not_empty);
+			pthread_mutex_unlock(&lock);
+			return;
 		}
 		else if (buffer->alg == RANDOM)
 		{
@@ -88,15 +99,19 @@ void add_to_ringbuffer(struct RingBuffer* buffer, int val)
 	}
 	else
 	{
-		buffer->array[buffer->producer_idx].fd = val;
-		buffer->array[buffer->producer_idx].arrival = time;
+		printf("entered the else\n");
+		buffer->array[buffer->producer_idx]->fd = val;
+		buffer->array[buffer->producer_idx]->arrival = time;
 		buffer->producer_idx++;
 		buffer->size++;
 		if(buffer->producer_idx == buffer->max_size)
 			buffer->producer_idx = 0;
+		pthread_cond_signal(&not_empty);
+		pthread_mutex_unlock(&lock);
+		printf("exitted the else\n");
+		return;
 	}
-	pthread_cond_signal(&not_empty);  // end of func signal
-	pthread_mutex_unlock(&lock);
+	printf("reached unexpected end of add_to_ringbuffer\n");
 	//printf("add_to_ringbuffer: at end, producer idx is %d\n", buffer->producer_idx);
 	//printf("add_to_ringbuffer: at end, consumer idx is %d\n", buffer->consumer_idx);
 	//printf("add to ringbuffer: ended\n");
@@ -107,7 +122,7 @@ void* do_request_handle(void* _requests)
 	struct RingBuffer* requests = (struct RingBuffer*) _requests;
 	while(1)
 	{
-		//printf("some thread loop\n");
+		printf("entered do_request_handle\n");
 		pthread_mutex_lock(&lock);
 		while(requests->size == 0)
 		{
@@ -120,31 +135,34 @@ void* do_request_handle(void* _requests)
 		gettimeofday(&time, NULL);
 		
 		requests->size--;
-		struct Request request = requests->array[requests->consumer_idx];
+		struct Request* request = requests->array[requests->consumer_idx];
 		
-		timersub(&time, &request.arrival, &time);
-		request.dispatch = time;
+		timersub(&time, &request->arrival, &time);
+		request->dispatch = time;
 		
 		pthread_t thread_handling_this_request = pthread_self();  // finds info about thread handling this request
-		//printf("thread handling: %lu\n", thread_handling_this_request);
+		printf("thread handling: %lu\n", thread_handling_this_request);
 		for(int i = 0; i < num_of_threads; ++i)
-			if(thread_array[i]->thread == thread_handling_this_request)
+		{
+			printf("thread found: %lu\n", thread_array[i]->thread);
+			if(pthread_equal(thread_array[i]->thread, thread_handling_this_request))
 			{
-				request.thread_info = thread_array[i];
+				request->thread_info = thread_array[i];
+				printf("broke on the do_request_handle loop\n");
 				break;
 			}
-		
+		}
 		requests->consumer_idx++;
 		if(requests->consumer_idx == requests->max_size)
 			requests->consumer_idx = 0;
 		//printf("did manipulation on consumer idx\n");
 		pthread_cond_signal(&not_full);
 		pthread_mutex_unlock(&lock);
-		//printf("started handling request, inner\n");
-		requestHandle(request);
-		//printf("finished handling request, inner\n");
-		Close(request.fd);
-		//printf("exitted do_request_handle\n");
+		printf("started handling request, inner\n");
+		requestHandle(*request);
+		printf("finished handling request, inner\n");
+		Close(request->fd);
+		printf("exitted do_request_handle\n");
 	}
 }
 
@@ -179,7 +197,7 @@ int main(int argc, char *argv[])
     getargs(&port, &num_of_threads, &queue_size, &schedalg, argc, argv);
 	 
 	// initializing the ring buffer
-	requests.array = (struct Request*) malloc(sizeof(struct Request) * queue_size);
+	requests.array = (struct Request**) malloc(sizeof(struct Request*) * queue_size);
 	requests.consumer_idx = 0;
 	requests.producer_idx = 0;
 	requests.size = 0;
@@ -202,9 +220,16 @@ int main(int argc, char *argv[])
 		thread_array[i] = new_thread;
 	}
 	
+	for(int i=0; i < queue_size; ++i)
+	{
+		struct Request* new_request = (struct Request*) malloc(sizeof(struct Request));
+		new_request->fd = -1;
+	}
+	
     listenfd = Open_listenfd(port);
     while (1) 
     {
+		printf("main thread: %lu\n", pthread_self());
 		//printf("waiting on request\n");
 		clientlen = sizeof(clientaddr);
 		connfd = Accept(listenfd, (SA *)&clientaddr, (socklen_t *) &clientlen);

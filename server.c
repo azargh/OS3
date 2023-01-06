@@ -41,7 +41,9 @@ struct RingBuffer{
 	
 void add_to_ringbuffer(struct RingBuffer* buffer, int val)
 {
-	printf("add to ringbuffer started\n");
+	//printf("add_to_ringbuffer: started\n");
+	//printf("add_to_ringbuffer: at start, producer idx is %d\n", buffer->producer_idx);
+	//printf("add_to_ringbuffer: at start, consumer idx is %d\n", buffer->consumer_idx);
 	pthread_mutex_lock(&lock);
 	struct timeval time;
 	gettimeofday(&time, NULL);
@@ -88,13 +90,16 @@ void add_to_ringbuffer(struct RingBuffer* buffer, int val)
 	{
 		buffer->array[buffer->producer_idx].fd = val;
 		buffer->array[buffer->producer_idx].arrival = time;
+		buffer->producer_idx++;
 		buffer->size++;
 		if(buffer->producer_idx == buffer->max_size)
 			buffer->producer_idx = 0;
 	}
 	pthread_cond_signal(&not_empty);  // end of func signal
 	pthread_mutex_unlock(&lock);
-	printf("add to ringbuffer ended\n");
+	//printf("add_to_ringbuffer: at end, producer idx is %d\n", buffer->producer_idx);
+	//printf("add_to_ringbuffer: at end, consumer idx is %d\n", buffer->consumer_idx);
+	//printf("add to ringbuffer: ended\n");
 }
 
 void* do_request_handle(void* _requests)
@@ -102,10 +107,14 @@ void* do_request_handle(void* _requests)
 	struct RingBuffer* requests = (struct RingBuffer*) _requests;
 	while(1)
 	{
-		printf("some thread loop\n");
+		//printf("some thread loop\n");
 		pthread_mutex_lock(&lock);
 		while(requests->size == 0)
+		{
+			//printf("thread waiting on lock\n");
 			pthread_cond_wait(&not_empty, &lock);
+			//printf("thread waiting on lock after cond\n");
+		}
 			
 		struct timeval time;
 		gettimeofday(&time, NULL);
@@ -115,7 +124,7 @@ void* do_request_handle(void* _requests)
 		request.dispatch = time;
 		
 		pthread_t thread_handling_this_request = pthread_self();  // finds info about thread handling this request
-		printf("thread handling: %ld", thread_handling_this_request);
+		//printf("thread handling: %lu\n", thread_handling_this_request);
 		for(int i = 0; i < num_of_threads; ++i)
 			if(thread_array[i].thread == thread_handling_this_request)
 			{
@@ -126,10 +135,14 @@ void* do_request_handle(void* _requests)
 		requests->consumer_idx++;
 		if(requests->consumer_idx == requests->max_size)
 			requests->consumer_idx = 0;
+		//printf("did manipulation on consumer idx\n");
 		pthread_cond_signal(&not_full);
 		pthread_mutex_unlock(&lock);
+		//printf("started handling request, inner\n");
 		requestHandle(request);
+		//printf("finished handling request, inner\n");
 		Close(request.fd);
+		//printf("exitted do_request_handle\n");
 	}
 }
 
@@ -173,17 +186,24 @@ int main(int argc, char *argv[])
 	for (int i=0; i < num_of_threads; ++i)  // creating threads
 	{
 		pthread_create(&thread_array[i].thread, NULL,do_request_handle,&requests);
+		//printf("thread pid as returned by create: %lu\n", thread_array[i].thread);
 		thread_array[i].count = 0;
 		thread_array[i].static_count = 0;
 		thread_array[i].dynamic_count = 0;
 	}
 	
+	for (int i=0; i < num_of_threads; ++i)  // debug info
+	{
+		printf("info on thread #%d: id = %lu, count = %d, static_count = %d, dynamic_count = %d\n", i, thread_array[i].thread, thread_array[i].count, thread_array[i].static_count, thread_array[i].dynamic_count);
+	}
+	
     listenfd = Open_listenfd(port);
     while (1) 
     {
-		printf("main thread loop\n");
+		//printf("waiting on request\n");
 		clientlen = sizeof(clientaddr);
 		connfd = Accept(listenfd, (SA *)&clientaddr, (socklen_t *) &clientlen);
+		//printf("request acquired: fd is %d\n", connfd);
 		add_to_ringbuffer(&requests, connfd);
     }
 }

@@ -66,7 +66,7 @@ void add_to_ringbuffer(struct RingBuffer* buffer, int val)
 				pthread_cond_wait(&not_full, &lock);
 				//printf("got the not full signal\n");
 			}
-			gettimeofday(&time, NULL);
+			//gettimeofday(&time, NULL);
 			buffer->array[buffer->producer_idx]->fd = val;
 			buffer->array[buffer->producer_idx]->arrival = time;
 			buffer->size++;
@@ -74,7 +74,7 @@ void add_to_ringbuffer(struct RingBuffer* buffer, int val)
 			if(buffer->producer_idx == buffer->max_size)
 				buffer->producer_idx = 0;
 			printf("sent not empty signal in alg == block scope\n");
-			pthread_cond_signal(&not_empty);  
+			pthread_cond_broadcast(&not_empty);  
 			pthread_mutex_unlock(&lock);
 			return;
 			
@@ -83,7 +83,7 @@ void add_to_ringbuffer(struct RingBuffer* buffer, int val)
 		{
 			Close(val);
 			printf("sent not empty signal in alg == dt scope\n");
-			pthread_cond_signal(&not_empty);
+			pthread_cond_broadcast(&not_empty);
 			pthread_mutex_unlock(&lock);
 			return;
 		}
@@ -99,13 +99,13 @@ void add_to_ringbuffer(struct RingBuffer* buffer, int val)
 			if(buffer->consumer_idx == buffer->max_size)
 				buffer->consumer_idx = 0;
 			printf("sent not empty signal in alg == dh scope\n");
-			pthread_cond_signal(&not_empty);
+			pthread_cond_broadcast(&not_empty);
 			pthread_mutex_unlock(&lock);
 			return;
 		}
 		else if (buffer->alg == RANDOM)
 		{
-			pthread_cond_signal(&not_empty);
+			pthread_cond_broadcast(&not_empty);
 			pthread_mutex_unlock(&lock);
 			return; // todo: implement random
 		}
@@ -120,7 +120,7 @@ void add_to_ringbuffer(struct RingBuffer* buffer, int val)
 		if(buffer->producer_idx == buffer->max_size)
 			buffer->producer_idx = 0;
 		printf("sent not empty signal in \"else\" scope\n");
-		pthread_cond_signal(&not_empty);
+		pthread_cond_broadcast(&not_empty);
 		pthread_mutex_unlock(&lock);
 		//printf("exitted the else\n");
 		return;
@@ -135,6 +135,7 @@ void* do_request_handle(void* _thread)
 {
 	struct Thread* thread = (struct Thread*) _thread;
 	struct timeval time;
+	printf("time address is: %p\n", &time);
 	while(1)
 	{
 		//printf("entered do_request_handle\n");
@@ -164,11 +165,11 @@ void* do_request_handle(void* _thread)
 		pthread_mutex_unlock(&lock);
 		
 		requestHandle(copy);
-		Close(temp);
 		
 		pthread_mutex_lock(&lock);
+		Close(temp);
 		requests.tasks_in_progress--;
-		pthread_cond_signal(&not_full);
+		pthread_cond_broadcast(&not_full);
 		pthread_mutex_unlock(&lock);
 	}
 }
@@ -217,6 +218,7 @@ int main(int argc, char *argv[])
 		new_thread->count = 0;
 		new_thread->dynamic_count = 0;
 		new_thread->static_count = 0;
+		new_thread->id = i;
 		thread_array[i] = new_thread;
 	}
 	

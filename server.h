@@ -2,6 +2,7 @@
 
 struct Thread{
 	pthread_t thread;
+	int id;
 	int count;
 	int static_count;
 	int dynamic_count;

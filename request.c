@@ -106,7 +106,7 @@ void printRequestInfoStatic(char* buf, struct Request request)
 {
 	sprintf(buf, "%sStat-Req-Arrival:: %lu.06%lu\r\n", buf, request.arrival.tv_sec, request.arrival.tv_usec);
 	sprintf(buf, "%sStat-Req-Dispatch:: %lu.06%lu\r\n", buf, request.dispatch.tv_sec, request.dispatch.tv_usec);
-	sprintf(buf, "%sStat-Thread-Id:: %lu\r\n", buf, request.thread_info->thread);
+	sprintf(buf, "%sStat-Thread-Id:: %d\r\n", buf, request.thread_info->id);
 	sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf, request.thread_info->count);
 	sprintf(buf, "%sStat-Thread-Static:: %d\r\n", buf, request.thread_info->static_count);
 	sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n\r\n", buf, request.thread_info->dynamic_count);
@@ -116,7 +116,7 @@ void printRequestInfoDynamic(char* buf, struct Request request)
 {
 	sprintf(buf, "%sStat-Req-Arrival:: %lu.06%lu\r\n", buf, request.arrival.tv_sec, request.arrival.tv_usec);
 	sprintf(buf, "%sStat-Req-Dispatch:: %lu.06%lu\r\n", buf, request.dispatch.tv_sec, request.dispatch.tv_usec);
-	sprintf(buf, "%sStat-Thread-Id:: %lu\r\n", buf, request.thread_info->thread);
+	sprintf(buf, "%sStat-Thread-Id:: %d\r\n", buf, request.thread_info->id);
 	sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf, request.thread_info->count);
 	sprintf(buf, "%sStat-Thread-Static:: %d\r\n", buf, request.thread_info->static_count);
 	sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n", buf, request.thread_info->dynamic_count);

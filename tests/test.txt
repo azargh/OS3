@@ -1,0 +1,316 @@
+============================= test session starts ==============================
+platform linux -- Python 3.6.9, pytest-7.0.1, pluggy-1.0.0
+rootdir: /home/student/Desktop/OS/tests
+plugins: xdist-3.0.2
+gw0 I / gw1 I / gw2 I / gw3 I / gw4 I
+gw0 [130] / gw1 [130] / gw2 [130] / gw3 [130] / gw4 [130]
+
+FFFFFFFFFFFF
+=================================== FAILURES ===================================
+______________________________ test_load[4-8-10] _______________________________
+[gw4] linux -- Python 3.6.9 /usr/bin/python3
+
+threads = 4, queue = 8, amount = 10, server_port = 8349
+
+>   ???
+
+/home/student/os_3/tests/test_drop_random.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+response = <Response [200]>
+expected_headers = {'Content-length': '123', 'Content-type': 'text/html', 'Server': 'OS-HW3 Web Server', 'Stat-Req-Arrival': '\\: \\d+.\\d+', ...}
+expected = '<p>Welcome to the CGI program<\\/p>[\\r\\n]+<p>My only purpose is to waste time on the server!<\\/p>[\\r\\n]+<p>I spun for 1.0\\d seconds<\\/p>[\\r\\n]+$'
+dispatch = 0
+
+    def validate_response_full_with_dispatch(response: requests.models.Response, expected_headers: dict, expected: str, dispatch: float):
+        assert response.status_code == 200
+        assert response.headers.keys() == expected_headers.keys(),\
+>           f"\nExpected:\n{list(expected_headers.keys())}"\
+            f"\nGot:\n{list(response.headers.keys())}"
+E       AssertionError: 
+E       Expected:
+E       ['Server', 'Stat-Req-Arrival', 'Stat-Req-Dispatch', 'Stat-Thread-Id', 'Stat-Thread-Count', 'Stat-Thread-Static', 'Stat-Thread-Dynamic', 'Content-length', 'Content-type']
+E       Got:
+E       ['Server', 'Stat-Req-Arrival', 'Stat-Req-Dispatch', 'Stat-Thread-Id', 'Stat-Thread-Count', 'Stat-Thread-Static', 'Stat-Thread-Dynamic']
+
+utils.py:77: AssertionError
+________________________ test_load[4-8-10-dispatches5] _________________________
+[gw2] linux -- Python 3.6.9 /usr/bin/python3
+
+threads = 4, queue = 8, amount = 10, dispatches = [0, 0, 0, 0, 0.4, 0.5, ...]
+server_port = 22964
+
+>   ???
+
+/home/student/os_3/tests/test_drop_head.py:56: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+response = <Response [200]>
+expected_headers = {'Content-length': '123', 'Content-type': 'text/html', 'Server': 'OS-HW3 Web Server', 'Stat-Req-Arrival': '\\: \\d+.\\d+', ...}
+expected = '<p>Welcome to the CGI program<\\/p>[\\r\\n]+<p>My only purpose is to waste time on the server!<\\/p>[\\r\\n]+<p>I spun for 1.0\\d seconds<\\/p>[\\r\\n]+$'
+dispatch = 0
+
+    def validate_response_full_with_dispatch(response: requests.models.Response, expected_headers: dict, expected: str, dispatch: float):
+        assert response.status_code == 200
+        assert response.headers.keys() == expected_headers.keys(),\
+>           f"\nExpected:\n{list(expected_headers.keys())}"\
+            f"\nGot:\n{list(response.headers.keys())}"
+E       AssertionError: 
+E       Expected:
+E       ['Server', 'Stat-Req-Arrival', 'Stat-Req-Dispatch', 'Stat-Thread-Id', 'Stat-Thread-Count', 'Stat-Thread-Static', 'Stat-Thread-Dynamic', 'Content-length', 'Content-type']
+E       Got:
+E       ['Server', 'Stat-Req-Arrival', 'Stat-Req-Dispatch', 'Stat-Thread-Id', 'Stat-Thread-Count', 'Stat-Thread-Static', 'Stat-Thread-Dynamic']
+
+utils.py:77: AssertionError
+_________________________________ test_sanity __________________________________
+[gw3] linux -- Python 3.6.9 /usr/bin/python3
+
+server_port = 20833
+
+>   ???
+E   Failed: DID NOT RAISE <class 'requests.exceptions.ConnectionError'>
+
+/home/student/os_3/tests/test_drop_random.py:22: Failed
+_________________________________ test_sanity __________________________________
+[gw1] linux -- Python 3.6.9 /usr/bin/python3
+
+server_port = 10074
+
+>   ???
+E   Failed: DID NOT RAISE <class 'requests.exceptions.ConnectionError'>
+
+/home/student/os_3/tests/test_drop_head.py:23: Failed
+_________________________________ test_sanity __________________________________
+[gw0] linux -- Python 3.6.9 /usr/bin/python3
+
+server_port = 10840
+
+>   ???
+
+/home/student/os_3/tests/test_block.py:23: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+response = <Response [200]>
+expected_headers = {'Content-length': '123', 'Content-type': 'text/html', 'Server': 'OS-HW3 Web Server', 'Stat-Req-Arrival': '\\: \\d+.\\d+', ...}
+expected = '<p>Welcome to the CGI program<\\/p>[\\r\\n]+<p>My only purpose is to waste time on the server!<\\/p>[\\r\\n]+<p>I spun for 1.0\\d seconds<\\/p>[\\r\\n]+$'
+
+    def validate_response_full(response: requests.models.Response, expected_headers: dict, expected: str):
+        assert response.status_code == 200
+        assert response.headers.keys() == expected_headers.keys(),\
+>           f"\nExpected:\n{list(expected_headers.keys())}"\
+            f"\nGot:\n{list(response.headers.keys())}"
+E       AssertionError: 
+E       Expected:
+E       ['Server', 'Stat-Req-Arrival', 'Stat-Req-Dispatch', 'Stat-Thread-Id', 'Stat-Thread-Count', 'Stat-Thread-Static', 'Stat-Thread-Dynamic', 'Content-length', 'Content-type']
+E       Got:
+E       ['Server', 'Stat-Req-Arrival', 'Stat-Req-Dispatch', 'Stat-Thread-Id', 'Stat-Thread-Count', 'Stat-Thread-Static', 'Stat-Thread-Dynamic']
+
+utils.py:62: AssertionError
+______________________ test_available_after_load[2-4-4-4] ______________________
+[gw4] linux -- Python 3.6.9 /usr/bin/python3
+
+threads = 2, queue = 4, amount_before = 4, amount_after = 4, server_port = 10480
+
+>   ???
+
+/home/student/os_3/tests/test_drop_random.py:101: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+response = <Response [200]>
+expected_headers = {'Content-length': '123', 'Content-type': 'text/html', 'Server': 'OS-HW3 Web Server', 'Stat-Req-Arrival': '\\: \\d+.\\d+', ...}
+expected = '<p>Welcome to the CGI program<\\/p>[\\r\\n]+<p>My only purpose is to waste time on the server!<\\/p>[\\r\\n]+<p>I spun for 1.0\\d seconds<\\/p>[\\r\\n]+$'
+dispatch = 0
+
+    def validate_response_full_with_dispatch(response: requests.models.Response, expected_headers: dict, expected: str, dispatch: float):
+        assert response.status_code == 200
+        assert response.headers.keys() == expected_headers.keys(),\
+>           f"\nExpected:\n{list(expected_headers.keys())}"\
+            f"\nGot:\n{list(response.headers.keys())}"
+E       AssertionError: 
+E       Expected:
+E       ['Server', 'Stat-Req-Arrival', 'Stat-Req-Dispatch', 'Stat-Thread-Id', 'Stat-Thread-Count', 'Stat-Thread-Static', 'Stat-Thread-Dynamic', 'Content-length', 'Content-type']
+E       Got:
+E       ['Server', 'Stat-Req-Arrival', 'Stat-Req-Dispatch', 'Stat-Thread-Id', 'Stat-Thread-Count', 'Stat-Thread-Static', 'Stat-Thread-Dynamic']
+
+utils.py:77: AssertionError
+________________ test_available_after_load[2-4-4-4-dispatches0] ________________
+[gw2] linux -- Python 3.6.9 /usr/bin/python3
+
+threads = 2, queue = 4, amount_before = 4, amount_after = 4
+dispatches = [0, 0, 0.8, 0.9], server_port = 22457
+
+>   ???
+
+/home/student/os_3/tests/test_drop_head.py:87: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+response = <Response [200]>
+expected_headers = {'Content-length': '123', 'Content-type': 'text/html', 'Server': 'OS-HW3 Web Server', 'Stat-Req-Arrival': '\\: \\d+.\\d+', ...}
+expected = '<p>Welcome to the CGI program<\\/p>[\\r\\n]+<p>My only purpose is to waste time on the server!<\\/p>[\\r\\n]+<p>I spun for 1.0\\d seconds<\\/p>[\\r\\n]+$'
+dispatch = 0
+
+    def validate_response_full_with_dispatch(response: requests.models.Response, expected_headers: dict, expected: str, dispatch: float):
+        assert response.status_code == 200
+        assert response.headers.keys() == expected_headers.keys(),\
+>           f"\nExpected:\n{list(expected_headers.keys())}"\
+            f"\nGot:\n{list(response.headers.keys())}"
+E       AssertionError: 
+E       Expected:
+E       ['Server', 'Stat-Req-Arrival', 'Stat-Req-Dispatch', 'Stat-Thread-Id', 'Stat-Thread-Count', 'Stat-Thread-Static', 'Stat-Thread-Dynamic', 'Content-length', 'Content-type']
+E       Got:
+E       ['Server', 'Stat-Req-Arrival', 'Stat-Req-Dispatch', 'Stat-Thread-Id', 'Stat-Thread-Count', 'Stat-Thread-Static', 'Stat-Thread-Dynamic']
+
+utils.py:77: AssertionError
+_______________________________ test_load[1-2-3] _______________________________
+[gw3] linux -- Python 3.6.9 /usr/bin/python3
+
+threads = 1, queue = 2, amount = 3, server_port = 18787
+
+>   ???
+
+/home/student/os_3/tests/test_drop_random.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+response = <Response [200]>
+expected_headers = {'Content-length': '123', 'Content-type': 'text/html', 'Server': 'OS-HW3 Web Server', 'Stat-Req-Arrival': '\\: \\d+.\\d+', ...}
+expected = '<p>Welcome to the CGI program<\\/p>[\\r\\n]+<p>My only purpose is to waste time on the server!<\\/p>[\\r\\n]+<p>I spun for 1.0\\d seconds<\\/p>[\\r\\n]+$'
+dispatch = 0
+
+    def validate_response_full_with_dispatch(response: requests.models.Response, expected_headers: dict, expected: str, dispatch: float):
+        assert response.status_code == 200
+        assert response.headers.keys() == expected_headers.keys(),\
+>           f"\nExpected:\n{list(expected_headers.keys())}"\
+            f"\nGot:\n{list(response.headers.keys())}"
+E       AssertionError: 
+E       Expected:
+E       ['Server', 'Stat-Req-Arrival', 'Stat-Req-Dispatch', 'Stat-Thread-Id', 'Stat-Thread-Count', 'Stat-Thread-Static', 'Stat-Thread-Dynamic', 'Content-length', 'Content-type']
+E       Got:
+E       ['Server', 'Stat-Req-Arrival', 'Stat-Req-Dispatch', 'Stat-Thread-Id', 'Stat-Thread-Count', 'Stat-Thread-Static', 'Stat-Thread-Dynamic']
+
+utils.py:77: AssertionError
+_________________________ test_load[1-2-3-dispatches0] _________________________
+[gw1] linux -- Python 3.6.9 /usr/bin/python3
+
+threads = 1, queue = 2, amount = 3, dispatches = [0, 0.8], server_port = 16948
+
+>   ???
+
+/home/student/os_3/tests/test_drop_head.py:56: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+response = <Response [200]>
+expected_headers = {'Content-length': '123', 'Content-type': 'text/html', 'Server': 'OS-HW3 Web Server', 'Stat-Req-Arrival': '\\: \\d+.\\d+', ...}
+expected = '<p>Welcome to the CGI program<\\/p>[\\r\\n]+<p>My only purpose is to waste time on the server!<\\/p>[\\r\\n]+<p>I spun for 1.0\\d seconds<\\/p>[\\r\\n]+$'
+dispatch = 0
+
+    def validate_response_full_with_dispatch(response: requests.models.Response, expected_headers: dict, expected: str, dispatch: float):
+        assert response.status_code == 200
+        assert response.headers.keys() == expected_headers.keys(),\
+>           f"\nExpected:\n{list(expected_headers.keys())}"\
+            f"\nGot:\n{list(response.headers.keys())}"
+E       AssertionError: 
+E       Expected:
+E       ['Server', 'Stat-Req-Arrival', 'Stat-Req-Dispatch', 'Stat-Thread-Id', 'Stat-Thread-Count', 'Stat-Thread-Static', 'Stat-Thread-Dynamic', 'Content-length', 'Content-type']
+E       Got:
+E       ['Server', 'Stat-Req-Arrival', 'Stat-Req-Dispatch', 'Stat-Thread-Id', 'Stat-Thread-Count', 'Stat-Thread-Static', 'Stat-Thread-Dynamic']
+
+utils.py:77: AssertionError
+_________________________ test_load[2-4-4-dispatches0] _________________________
+[gw0] linux -- Python 3.6.9 /usr/bin/python3
+
+threads = 2, queue = 4, amount = 4, dispatches = [0, 0, 0.8, 0.9]
+server_port = 27886
+
+>   ???
+
+/home/student/os_3/tests/test_block.py:53: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+response = <Response [200]>
+expected_headers = {'Content-length': '123', 'Content-type': 'text/html', 'Server': 'OS-HW3 Web Server', 'Stat-Req-Arrival': '\\: \\d+.\\d+', ...}
+expected = '<p>Welcome to the CGI program<\\/p>[\\r\\n]+<p>My only purpose is to waste time on the server!<\\/p>[\\r\\n]+<p>I spun for 1.0\\d seconds<\\/p>[\\r\\n]+$'
+dispatch = 0
+
+    def validate_response_full_with_dispatch(response: requests.models.Response, expected_headers: dict, expected: str, dispatch: float):
+        assert response.status_code == 200
+        assert response.headers.keys() == expected_headers.keys(),\
+>           f"\nExpected:\n{list(expected_headers.keys())}"\
+            f"\nGot:\n{list(response.headers.keys())}"
+E       AssertionError: 
+E       Expected:
+E       ['Server', 'Stat-Req-Arrival', 'Stat-Req-Dispatch', 'Stat-Thread-Id', 'Stat-Thread-Count', 'Stat-Thread-Static', 'Stat-Thread-Dynamic', 'Content-length', 'Content-type']
+E       Got:
+E       ['Server', 'Stat-Req-Arrival', 'Stat-Req-Dispatch', 'Stat-Thread-Id', 'Stat-Thread-Count', 'Stat-Thread-Static', 'Stat-Thread-Dynamic']
+
+utils.py:77: AssertionError
+_______________________________ test_load[2-4-4] _______________________________
+[gw3] linux -- Python 3.6.9 /usr/bin/python3
+
+threads = 2, queue = 4, amount = 4, server_port = 14526
+
+>   ???
+
+/home/student/os_3/tests/test_drop_random.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+response = <Response [200]>
+expected_headers = {'Content-length': '123', 'Content-type': 'text/html', 'Server': 'OS-HW3 Web Server', 'Stat-Req-Arrival': '\\: \\d+.\\d+', ...}
+expected = '<p>Welcome to the CGI program<\\/p>[\\r\\n]+<p>My only purpose is to waste time on the server!<\\/p>[\\r\\n]+<p>I spun for 1.0\\d seconds<\\/p>[\\r\\n]+$'
+dispatch = 0
+
+    def validate_response_full_with_dispatch(response: requests.models.Response, expected_headers: dict, expected: str, dispatch: float):
+        assert response.status_code == 200
+        assert response.headers.keys() == expected_headers.keys(),\
+>           f"\nExpected:\n{list(expected_headers.keys())}"\
+            f"\nGot:\n{list(response.headers.keys())}"
+E       AssertionError: 
+E       Expected:
+E       ['Server', 'Stat-Req-Arrival', 'Stat-Req-Dispatch', 'Stat-Thread-Id', 'Stat-Thread-Count', 'Stat-Thread-Static', 'Stat-Thread-Dynamic', 'Content-length', 'Content-type']
+E       Got:
+E       ['Server', 'Stat-Req-Arrival', 'Stat-Req-Dispatch', 'Stat-Thread-Id', 'Stat-Thread-Count', 'Stat-Thread-Static', 'Stat-Thread-Dynamic']
+
+utils.py:77: AssertionError
+______________________ test_available_after_load[2-4-8-8] ______________________
+[gw4] linux -- Python 3.6.9 /usr/bin/python3
+
+threads = 2, queue = 4, amount_before = 8, amount_after = 8, server_port = 23179
+
+>   ???
+
+/home/student/os_3/tests/test_drop_random.py:101: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+response = <Response [200]>
+expected_headers = {'Content-length': '123', 'Content-type': 'text/html', 'Server': 'OS-HW3 Web Server', 'Stat-Req-Arrival': '\\: \\d+.\\d+', ...}
+expected = '<p>Welcome to the CGI program<\\/p>[\\r\\n]+<p>My only purpose is to waste time on the server!<\\/p>[\\r\\n]+<p>I spun for 1.0\\d seconds<\\/p>[\\r\\n]+$'
+dispatch = 0
+
+    def validate_response_full_with_dispatch(response: requests.models.Response, expected_headers: dict, expected: str, dispatch: float):
+        assert response.status_code == 200
+        assert response.headers.keys() == expected_headers.keys(),\
+>           f"\nExpected:\n{list(expected_headers.keys())}"\
+            f"\nGot:\n{list(response.headers.keys())}"
+E       AssertionError: 
+E       Expected:
+E       ['Server', 'Stat-Req-Arrival', 'Stat-Req-Dispatch', 'Stat-Thread-Id', 'Stat-Thread-Count', 'Stat-Thread-Static', 'Stat-Thread-Dynamic', 'Content-length', 'Content-type']
+E       Got:
+E       ['Server', 'Stat-Req-Arrival', 'Stat-Req-Dispatch', 'Stat-Thread-Id', 'Stat-Thread-Count', 'Stat-Thread-Static', 'Stat-Thread-Dynamic']
+
+utils.py:77: AssertionError
+=========================== short test summary info ============================
+FAILED test_drop_random.py::test_load[4-8-10] - AssertionError: 
+FAILED test_drop_head.py::test_load[4-8-10-dispatches5] - AssertionError: 
+FAILED test_drop_random.py::test_sanity - Failed: DID NOT RAISE <class 'reque...
+FAILED test_drop_head.py::test_sanity - Failed: DID NOT RAISE <class 'request...
+FAILED test_block.py::test_sanity - AssertionError: 
+FAILED test_drop_random.py::test_available_after_load[2-4-4-4] - AssertionErr...
+FAILED test_drop_head.py::test_available_after_load[2-4-4-4-dispatches0] - As...
+FAILED test_drop_random.py::test_load[1-2-3] - AssertionError: 
+FAILED test_drop_head.py::test_load[1-2-3-dispatches0] - AssertionError: 
+FAILED test_block.py::test_load[2-4-4-dispatches0] - AssertionError: 
+FAILED test_drop_random.py::test_load[2-4-4] - AssertionError: 
+FAILED test_drop_random.py::test_available_after_load[2-4-8-8] - AssertionErr...
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! KeyboardInterrupt !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/usr/lib/python3.6/threading.py:299: KeyboardInterrupt
+(to show a full traceback on KeyboardInterrupt use --full-trace)
+============================== 12 failed in 6.29s ==============================

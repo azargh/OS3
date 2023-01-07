@@ -1,0 +1,211 @@
+============================= test session starts ==============================
+platform linux -- Python 3.6.9, pytest-7.0.1, pluggy-1.0.0
+rootdir: /home/student/Desktop/OS/tests
+plugins: xdist-3.0.2
+gw0 I / gw1 I / gw2 I / gw3 I / gw4 I
+gw0 [6] / gw1 [6] / gw2 [6] / gw3 [6] / gw4 [6]
+
+.FFFFF                                                                   [100%]
+=================================== FAILURES ===================================
+_________________________ test_load[2-4-4-dispatches0] _________________________
+[gw1] linux -- Python 3.6.9 /usr/bin/python3
+
+threads = 2, queue = 4, amount = 4, dispatches = [0, 0, 0.8, 0.9]
+server_port = 14348
+
+>   ???
+
+/home/student/os_3/tests/test_block.py:53: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+response = <Response [200]>
+expected_headers = {'Content-length': '123', 'Content-type': 'text/html', 'Server': 'OS-HW3 Web Server', 'Stat-Req-Arrival': '\\: \\d+.\\d+', ...}
+expected = '<p>Welcome to the CGI program<\\/p>[\\r\\n]+<p>My only purpose is to waste time on the server!<\\/p>[\\r\\n]+<p>I spun for 1.2\\d seconds<\\/p>[\\r\\n]+$'
+dispatch = 0.8
+
+    def validate_response_full_with_dispatch(response: requests.models.Response, expected_headers: dict, expected: str, dispatch: float):
+        assert response.status_code == 200
+        assert response.headers.keys() == expected_headers.keys(),\
+            f"\nExpected:\n{list(expected_headers.keys())}"\
+            f"\nGot:\n{list(response.headers.keys())}"
+        for header, value in expected_headers.items():
+            assert re.fullmatch(value, response.headers[header]),\
+                f"\nHeader:\n{header}"\
+                f"\nExpected:\n{value}"\
+                f"\nGot:\n{response.headers[header]}"
+        assert re.fullmatch(expected, response.text),\
+            f"\nExpected:\n{expected}"\
+            f"\nGot:\n{response.text}"
+        assert abs(float(response.headers['Stat-Req-Dispatch'][2:]) - dispatch) < 0.1,\
+>           f"\nExpected:\n{dispatch}"\
+            f"\nGot:\n{float(response.headers['Stat-Req-Dispatch'][2:])}"
+E       AssertionError: 
+E       Expected:
+E       0.8
+E       Got:
+E       0.06802486
+
+utils.py:88: AssertionError
+_________________________ test_load[2-4-8-dispatches1] _________________________
+[gw2] linux -- Python 3.6.9 /usr/bin/python3
+
+threads = 2, queue = 4, amount = 8, dispatches = [0, 0, 0.8, 0.9, 1.8, 1.5, ...]
+server_port = 16675
+
+>   ???
+
+/home/student/os_3/tests/test_block.py:53: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+response = <Response [200]>
+expected_headers = {'Content-length': '123', 'Content-type': 'text/html', 'Server': 'OS-HW3 Web Server', 'Stat-Req-Arrival': '\\: \\d+.\\d+', ...}
+expected = '<p>Welcome to the CGI program<\\/p>[\\r\\n]+<p>My only purpose is to waste time on the server!<\\/p>[\\r\\n]+<p>I spun for 1.2\\d seconds<\\/p>[\\r\\n]+$'
+dispatch = 0.8
+
+    def validate_response_full_with_dispatch(response: requests.models.Response, expected_headers: dict, expected: str, dispatch: float):
+        assert response.status_code == 200
+        assert response.headers.keys() == expected_headers.keys(),\
+            f"\nExpected:\n{list(expected_headers.keys())}"\
+            f"\nGot:\n{list(response.headers.keys())}"
+        for header, value in expected_headers.items():
+            assert re.fullmatch(value, response.headers[header]),\
+                f"\nHeader:\n{header}"\
+                f"\nExpected:\n{value}"\
+                f"\nGot:\n{response.headers[header]}"
+        assert re.fullmatch(expected, response.text),\
+            f"\nExpected:\n{expected}"\
+            f"\nGot:\n{response.text}"
+        assert abs(float(response.headers['Stat-Req-Dispatch'][2:]) - dispatch) < 0.1,\
+>           f"\nExpected:\n{dispatch}"\
+            f"\nGot:\n{float(response.headers['Stat-Req-Dispatch'][2:])}"
+E       AssertionError: 
+E       Expected:
+E       0.8
+E       Got:
+E       0.06798786
+
+utils.py:88: AssertionError
+_________________________ test_load[4-4-8-dispatches2] _________________________
+[gw3] linux -- Python 3.6.9 /usr/bin/python3
+
+threads = 4, queue = 4, amount = 8, dispatches = [0, 0, 0, 0, 0.6, 0.2, ...]
+server_port = 22756
+
+>   ???
+
+/home/student/os_3/tests/test_block.py:53: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+response = <Response [200]>
+expected_headers = {'Content-length': '123', 'Content-type': 'text/html', 'Server': 'OS-HW3 Web Server', 'Stat-Req-Arrival': '\\: \\d+.\\d+', ...}
+expected = '<p>Welcome to the CGI program<\\/p>[\\r\\n]+<p>My only purpose is to waste time on the server!<\\/p>[\\r\\n]+<p>I spun for 1.4\\d seconds<\\/p>[\\r\\n]+$'
+dispatch = 0.6
+
+    def validate_response_full_with_dispatch(response: requests.models.Response, expected_headers: dict, expected: str, dispatch: float):
+        assert response.status_code == 200
+        assert response.headers.keys() == expected_headers.keys(),\
+            f"\nExpected:\n{list(expected_headers.keys())}"\
+            f"\nGot:\n{list(response.headers.keys())}"
+        for header, value in expected_headers.items():
+            assert re.fullmatch(value, response.headers[header]),\
+                f"\nHeader:\n{header}"\
+                f"\nExpected:\n{value}"\
+                f"\nGot:\n{response.headers[header]}"
+        assert re.fullmatch(expected, response.text),\
+            f"\nExpected:\n{expected}"\
+            f"\nGot:\n{response.text}"
+        assert abs(float(response.headers['Stat-Req-Dispatch'][2:]) - dispatch) < 0.1,\
+>           f"\nExpected:\n{dispatch}"\
+            f"\nGot:\n{float(response.headers['Stat-Req-Dispatch'][2:])}"
+E       AssertionError: 
+E       Expected:
+E       0.6
+E       Got:
+E       0.06595821
+
+utils.py:88: AssertionError
+_________________________ test_load[4-8-8-dispatches3] _________________________
+[gw4] linux -- Python 3.6.9 /usr/bin/python3
+
+threads = 4, queue = 8, amount = 8, dispatches = [0, 0, 0, 0, 0.6, 0.7, ...]
+server_port = 8641
+
+>   ???
+
+/home/student/os_3/tests/test_block.py:53: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+response = <Response [200]>
+expected_headers = {'Content-length': '123', 'Content-type': 'text/html', 'Server': 'OS-HW3 Web Server', 'Stat-Req-Arrival': '\\: \\d+.\\d+', ...}
+expected = '<p>Welcome to the CGI program<\\/p>[\\r\\n]+<p>My only purpose is to waste time on the server!<\\/p>[\\r\\n]+<p>I spun for 1.4\\d seconds<\\/p>[\\r\\n]+$'
+dispatch = 0.6
+
+    def validate_response_full_with_dispatch(response: requests.models.Response, expected_headers: dict, expected: str, dispatch: float):
+        assert response.status_code == 200
+        assert response.headers.keys() == expected_headers.keys(),\
+            f"\nExpected:\n{list(expected_headers.keys())}"\
+            f"\nGot:\n{list(response.headers.keys())}"
+        for header, value in expected_headers.items():
+            assert re.fullmatch(value, response.headers[header]),\
+                f"\nHeader:\n{header}"\
+                f"\nExpected:\n{value}"\
+                f"\nGot:\n{response.headers[header]}"
+        assert re.fullmatch(expected, response.text),\
+            f"\nExpected:\n{expected}"\
+            f"\nGot:\n{response.text}"
+        assert abs(float(response.headers['Stat-Req-Dispatch'][2:]) - dispatch) < 0.1,\
+>           f"\nExpected:\n{dispatch}"\
+            f"\nGot:\n{float(response.headers['Stat-Req-Dispatch'][2:])}"
+E       AssertionError: 
+E       Expected:
+E       0.6
+E       Got:
+E       0.06592561
+
+utils.py:88: AssertionError
+________________________ test_load[4-8-10-dispatches4] _________________________
+[gw0] linux -- Python 3.6.9 /usr/bin/python3
+
+threads = 4, queue = 8, amount = 10, dispatches = [0, 0, 0, 0, 0.6, 0.7, ...]
+server_port = 16678
+
+>   ???
+
+/home/student/os_3/tests/test_block.py:53: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+response = <Response [200]>
+expected_headers = {'Content-length': '123', 'Content-type': 'text/html', 'Server': 'OS-HW3 Web Server', 'Stat-Req-Arrival': '\\: \\d+.\\d+', ...}
+expected = '<p>Welcome to the CGI program<\\/p>[\\r\\n]+<p>My only purpose is to waste time on the server!<\\/p>[\\r\\n]+<p>I spun for 1.4\\d seconds<\\/p>[\\r\\n]+$'
+dispatch = 0.6
+
+    def validate_response_full_with_dispatch(response: requests.models.Response, expected_headers: dict, expected: str, dispatch: float):
+        assert response.status_code == 200
+        assert response.headers.keys() == expected_headers.keys(),\
+            f"\nExpected:\n{list(expected_headers.keys())}"\
+            f"\nGot:\n{list(response.headers.keys())}"
+        for header, value in expected_headers.items():
+            assert re.fullmatch(value, response.headers[header]),\
+                f"\nHeader:\n{header}"\
+                f"\nExpected:\n{value}"\
+                f"\nGot:\n{response.headers[header]}"
+        assert re.fullmatch(expected, response.text),\
+            f"\nExpected:\n{expected}"\
+            f"\nGot:\n{response.text}"
+        assert abs(float(response.headers['Stat-Req-Dispatch'][2:]) - dispatch) < 0.1,\
+>           f"\nExpected:\n{dispatch}"\
+            f"\nGot:\n{float(response.headers['Stat-Req-Dispatch'][2:])}"
+E       AssertionError: 
+E       Expected:
+E       0.6
+E       Got:
+E       0.06592207
+
+utils.py:88: AssertionError
+=========================== short test summary info ============================
+FAILED test_block.py::test_load[2-4-4-dispatches0] - AssertionError: 
+FAILED test_block.py::test_load[2-4-8-dispatches1] - AssertionError: 
+FAILED test_block.py::test_load[4-4-8-dispatches2] - AssertionError: 
+FAILED test_block.py::test_load[4-8-8-dispatches3] - AssertionError: 
+FAILED test_block.py::test_load[4-8-10-dispatches4] - AssertionError: 
+========================= 5 failed, 1 passed in 7.46s ==========================

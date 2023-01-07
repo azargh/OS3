@@ -183,7 +183,7 @@ void requestServeStatic(struct Request request, char *filename, int filesize)
 void requestHandle(struct Request request)
 {
 	int fd = request.fd;
-	//printf("requestHandle: fd = %d\n", fd);
+	printf("requestHandle: fd = %d\n", fd);
 	//printf("thread with id %lu had count of %d\n", request.thread_info->thread, request.thread_info->count); 
 	(request.thread_info->count)++;
 	//printf("thread with id %lu had count of %d\n", request.thread_info->thread, request.thread_info->count);

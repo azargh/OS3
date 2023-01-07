@@ -4,6 +4,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <sys/time.h>
+#include <sched.h>
 #include <assert.h>
 
 // 
@@ -36,6 +37,7 @@ struct RingBuffer{
 	struct Request** array;
 	int consumer_idx, producer_idx;
 	int size;
+	int tasks_in_progress;
 	int max_size;
 	enum _schedalg alg;
 };
@@ -52,13 +54,13 @@ void add_to_ringbuffer(struct RingBuffer* buffer, int val)
 	//printf("producer idx: %d\n", buffer->producer_idx);
 	//printf("consumer idx: %d\n", buffer->consumer_idx);
 	//printf("val is: %d\n", val);
-	if (buffer->size == buffer->max_size)
+	if (buffer->size + buffer->tasks_in_progress == buffer->max_size)
 	{
 		if (buffer->alg == BLOCK)
 		{
 			//printf("entered the blocking if\n");
-			assert(buffer->producer_idx == buffer->consumer_idx);
-			while(buffer->max_size == buffer->size)
+			//assert(buffer->producer_idx == buffer->consumer_idx);
+			while(buffer->size + buffer->tasks_in_progress == buffer->max_size)
 			{
 				//printf("waiting on not full signal\n");
 				pthread_cond_wait(&not_full, &lock);
@@ -70,8 +72,9 @@ void add_to_ringbuffer(struct RingBuffer* buffer, int val)
 			buffer->size++;
 			buffer->producer_idx++;
 			if(buffer->producer_idx == buffer->max_size)
-				buffer->producer_idx = 0;  // signal sent at end of func
-			pthread_cond_signal(&not_empty);  // end of func signal
+				buffer->producer_idx = 0;
+			printf("sent not empty signal in alg == block scope\n");
+			pthread_cond_signal(&not_empty);  
 			pthread_mutex_unlock(&lock);
 			return;
 			
@@ -79,6 +82,7 @@ void add_to_ringbuffer(struct RingBuffer* buffer, int val)
 		else if (buffer->alg == DT)
 		{
 			Close(val);
+			printf("sent not empty signal in alg == dt scope\n");
 			pthread_cond_signal(&not_empty);
 			pthread_mutex_unlock(&lock);
 			return;
@@ -94,6 +98,7 @@ void add_to_ringbuffer(struct RingBuffer* buffer, int val)
 				buffer->producer_idx = 0;
 			if(buffer->consumer_idx == buffer->max_size)
 				buffer->consumer_idx = 0;
+			printf("sent not empty signal in alg == dh scope\n");
 			pthread_cond_signal(&not_empty);
 			pthread_mutex_unlock(&lock);
 			return;
@@ -114,6 +119,7 @@ void add_to_ringbuffer(struct RingBuffer* buffer, int val)
 		buffer->size++;
 		if(buffer->producer_idx == buffer->max_size)
 			buffer->producer_idx = 0;
+		printf("sent not empty signal in \"else\" scope\n");
 		pthread_cond_signal(&not_empty);
 		pthread_mutex_unlock(&lock);
 		//printf("exitted the else\n");
@@ -128,6 +134,7 @@ void add_to_ringbuffer(struct RingBuffer* buffer, int val)
 void* do_request_handle(void* _thread)
 {
 	struct Thread* thread = (struct Thread*) _thread;
+	struct timeval time;
 	while(1)
 	{
 		//printf("entered do_request_handle\n");
@@ -139,31 +146,30 @@ void* do_request_handle(void* _thread)
 			//printf("thread waiting on lock after cond\n");
 		}
 			
-		struct timeval time;
 		gettimeofday(&time, NULL);
 		
-		requests.size--;
 		struct Request* request = requests.array[requests.consumer_idx];
 		
-		timersub(&time, &request->arrival, &time);
-		request->dispatch = time;
+		timersub(&time, &request->arrival, &request->dispatch);
 		
 		request->thread_info = thread;
 		
 		requests.consumer_idx++;
 		if(requests.consumer_idx == requests.max_size)
 			requests.consumer_idx = 0;
-		//printf("did manipulation on consumer idx\n");
 		int temp = request->fd;
 		struct Request copy = *request;
+		requests.size--;
+		requests.tasks_in_progress++;
+		pthread_mutex_unlock(&lock);
+		
+		requestHandle(copy);
+		Close(temp);
+		
+		pthread_mutex_lock(&lock);
+		requests.tasks_in_progress--;
 		pthread_cond_signal(&not_full);
 		pthread_mutex_unlock(&lock);
-		//printf("started handling request, inner\n");
-		requestHandle(copy);
-		//printf("finished handling request, inner\n");
-		//printf("trying to close: %d\n", request->fd);
-		Close(temp);
-		//printf("exitted do_request_handle\n");
 	}
 }
 

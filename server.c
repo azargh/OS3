@@ -42,7 +42,7 @@ struct RingBuffer{
 	enum _schedalg alg;
 };
 	
-void add_to_ringbuffer(struct RingBuffer* buffer, int val)
+void add_to_ringbuffer(int val)
 {
 	//printf("add_to_ringbuffer: started\n");
 	//printf("add_to_ringbuffer: at start, producer idx is %d\n", buffer->producer_idx);
@@ -54,58 +54,58 @@ void add_to_ringbuffer(struct RingBuffer* buffer, int val)
 	//printf("producer idx: %d\n", buffer->producer_idx);
 	//printf("consumer idx: %d\n", buffer->consumer_idx);
 	//printf("val is: %d\n", val);
-	if (buffer->size + buffer->tasks_in_progress == buffer->max_size)
+	if (requests.size + requests.tasks_in_progress == requests.max_size)
 	{
-		if (buffer->alg == BLOCK)
+		if (requests.alg == BLOCK)
 		{
 			//printf("entered the blocking if\n");
 			//assert(buffer->producer_idx == buffer->consumer_idx);
-			while(buffer->size + buffer->tasks_in_progress == buffer->max_size)
+			while(requests.size + requests.tasks_in_progress == requests.max_size)
 			{
 				//printf("waiting on not full signal\n");
 				pthread_cond_wait(&not_full, &lock);
 				//printf("got the not full signal\n");
 			}
-			//gettimeofday(&time, NULL);
-			buffer->array[buffer->producer_idx]->fd = val;
-			buffer->array[buffer->producer_idx]->arrival = time;
-			buffer->size++;
-			buffer->producer_idx++;
-			if(buffer->producer_idx == buffer->max_size)
-				buffer->producer_idx = 0;
+			gettimeofday(&time, NULL);
+			requests.array[requests.producer_idx]->fd = val;
+			requests.array[requests.producer_idx]->arrival = time;
+			requests.size++;
+			requests.producer_idx++;
+			if(requests.producer_idx == requests.max_size)
+				requests.producer_idx = 0;
 			printf("sent not empty signal in alg == block scope\n");
-			pthread_cond_broadcast(&not_empty);  
+			pthread_cond_signal(&not_empty);  
 			pthread_mutex_unlock(&lock);
 			return;
 			
 		}
-		else if (buffer->alg == DT)
+		else if (requests.alg == DT)
 		{
 			Close(val);
 			printf("sent not empty signal in alg == dt scope\n");
-			pthread_cond_broadcast(&not_empty);
+			pthread_cond_signal(&not_empty);
 			pthread_mutex_unlock(&lock);
 			return;
 		}
-		else if (buffer->alg == DH)
+		else if (requests.alg == DH)
 		{
-			Close(buffer->array[buffer->consumer_idx]->fd);
-			buffer->consumer_idx++;
-			buffer->array[buffer->producer_idx]->fd = val;
-			buffer->array[buffer->producer_idx]->arrival = time;
-			buffer->producer_idx++;
-			if(buffer->producer_idx == buffer->max_size)
-				buffer->producer_idx = 0;
-			if(buffer->consumer_idx == buffer->max_size)
-				buffer->consumer_idx = 0;
+			Close(requests.array[requests.consumer_idx]->fd);
+			requests.consumer_idx++;
+			requests.array[requests.producer_idx]->fd = val;
+			requests.array[requests.producer_idx]->arrival = time;
+			requests.producer_idx++;
+			if(requests.producer_idx == requests.max_size)
+				requests.producer_idx = 0;
+			if(requests.consumer_idx == requests.max_size)
+				requests.consumer_idx = 0;
 			printf("sent not empty signal in alg == dh scope\n");
-			pthread_cond_broadcast(&not_empty);
+			pthread_cond_signal(&not_empty);
 			pthread_mutex_unlock(&lock);
 			return;
 		}
-		else if (buffer->alg == RANDOM)
+		else if (requests.alg == RANDOM)
 		{
-			pthread_cond_broadcast(&not_empty);
+			pthread_cond_signal(&not_empty);
 			pthread_mutex_unlock(&lock);
 			return; // todo: implement random
 		}
@@ -113,14 +113,14 @@ void add_to_ringbuffer(struct RingBuffer* buffer, int val)
 	else
 	{
 		//printf("entered the else\n");
-		buffer->array[buffer->producer_idx]->fd = val;
-		buffer->array[buffer->producer_idx]->arrival = time;
-		buffer->producer_idx++;
-		buffer->size++;
-		if(buffer->producer_idx == buffer->max_size)
-			buffer->producer_idx = 0;
+		requests.array[requests.producer_idx]->fd = val;
+		requests.array[requests.producer_idx]->arrival = time;
+		requests.producer_idx++;
+		requests.size++;
+		if(requests.producer_idx == requests.max_size)
+			requests.producer_idx = 0;
 		printf("sent not empty signal in \"else\" scope\n");
-		pthread_cond_broadcast(&not_empty);
+		pthread_cond_signal(&not_empty);
 		pthread_mutex_unlock(&lock);
 		//printf("exitted the else\n");
 		return;
@@ -138,8 +138,11 @@ void* do_request_handle(void* _thread)
 	printf("time address is: %p\n", &time);
 	while(1)
 	{
-		//printf("entered do_request_handle\n");
+		gettimeofday(&time, NULL);
+		printf("thread %d waiting for mutex at beginning of do_request_handle time: %lu.06%lu\n", thread->id, time.tv_sec, time.tv_usec);
 		pthread_mutex_lock(&lock);
+		gettimeofday(&time, NULL);
+		printf("thread %d got mutex at beginning of do_request_handle time: %lu.06%lu\n", thread->id, time.tv_sec, time.tv_usec);
 		while(requests.size == 0)
 		{
 			//printf("thread waiting on lock\n");
@@ -155,22 +158,30 @@ void* do_request_handle(void* _thread)
 		
 		request->thread_info = thread;
 		
+		int old_index = requests.consumer_idx;
+		
 		requests.consumer_idx++;
 		if(requests.consumer_idx == requests.max_size)
 			requests.consumer_idx = 0;
-		int temp = request->fd;
-		struct Request copy = *request;
 		requests.size--;
 		requests.tasks_in_progress++;
+		gettimeofday(&time, NULL);
+		printf("thread %d releasing mutex at before requestHandle in do_request_handle, time: %lu.06%lu\n", thread->id, time.tv_sec, time.tv_usec);
 		pthread_mutex_unlock(&lock);
 		
-		requestHandle(copy);
+		requestHandle(*requests.array[old_index]);
+		Close(requests.array[old_index]->fd);
 		
+		gettimeofday(&time, NULL);
+		printf("thread %d waiting on mutex to update tasks in progress in do_request_handle, time: %lu.06%lu\n", thread->id, time.tv_sec, time.tv_usec);
 		pthread_mutex_lock(&lock);
-		Close(temp);
+		gettimeofday(&time, NULL);
+		printf("thread %d got mutex to update tasks in progress in do_request_handle, time: %lu.06%lu\n", thread->id, time.tv_sec, time.tv_usec);
 		requests.tasks_in_progress--;
-		pthread_cond_broadcast(&not_full);
+		pthread_cond_signal(&not_full);
 		pthread_mutex_unlock(&lock);
+		gettimeofday(&time, NULL);
+		printf("thread %d releasing mutex after updating tasks in progress in do_request_handle, time: %lu.06%lu\n", thread->id, time.tv_sec, time.tv_usec);
 	}
 }
 
@@ -210,6 +221,7 @@ int main(int argc, char *argv[])
 	requests.producer_idx = 0;
 	requests.size = 0;
 	requests.max_size = queue_size;
+	requests.tasks_in_progress = 0;
 
 	for (int i=0; i < num_of_threads; ++i)  // creating threads
 	{
@@ -237,7 +249,7 @@ int main(int argc, char *argv[])
 		clientlen = sizeof(clientaddr);
 		connfd = Accept(listenfd, (SA *)&clientaddr, (socklen_t *) &clientlen);
 		//printf("request acquired: fd is %d\n", connfd);
-		add_to_ringbuffer(&requests, connfd);
+		add_to_ringbuffer(connfd);
     }
 }
 
